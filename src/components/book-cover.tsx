@@ -6,10 +6,17 @@ import { cn } from "@/lib/utils";
 type BookCoverProps = {
   coverId: number | null;
   title: string;
+  /** Open Library cover size: S, M (default), or L. */
+  size?: "S" | "M" | "L";
   className?: string;
 };
 
-export function BookCover({ coverId, title, className }: BookCoverProps) {
+export function BookCover({
+  coverId,
+  title,
+  size = "M",
+  className,
+}: BookCoverProps) {
   return (
     <div
       className={cn(
@@ -21,7 +28,7 @@ export function BookCover({ coverId, title, className }: BookCoverProps) {
         // Open Library already serves covers at fixed sizes, so we skip
         // Next.js's image optimizer and load them directly.
         <Image
-          src={coverUrl(coverId, "M")}
+          src={coverUrl(coverId, size)}
           alt={`Cover of ${title}`}
           fill
           unoptimized
