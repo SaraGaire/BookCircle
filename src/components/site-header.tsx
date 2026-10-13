@@ -1,8 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { MainNav } from "@/components/main-nav";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { UserNav, UserNavSkeleton } from "@/components/user-nav";
 
 export function SiteHeader() {
   return (
@@ -16,12 +16,12 @@ export function SiteHeader() {
           BookCircle
         </Link>
         <MainNav />
-        <Link
-          href="/sign-in"
-          className={cn(buttonVariants({ size: "sm" }), "ml-auto")}
-        >
-          Sign in
-        </Link>
+        <div className="ml-auto">
+          {/* Checking who's signed in reads cookies, so it streams in. */}
+          <Suspense fallback={<UserNavSkeleton />}>
+            <UserNav />
+          </Suspense>
+        </div>
       </div>
     </header>
   );
