@@ -1,85 +1,45 @@
-# Zara Filter Extension
+# BookCircle
 
-A Chrome extension that enhances the shopping experience on Zara.com by allowing users to filter products based on **discount percentage**, **material type**, and **material composition**.
+**A social platform for readers to discover books, track their reading journeys, and connect with fellow book lovers.**
 
----
+BookCircle is an open-source project inspired by the idea of Letterboxd for books. Readers can organize their reading lists, rate and review books, discover what others are reading, and join conversations about their favorite stories.
 
 ## Features
 
-- Filter products by **minimum discount percentage**
-- Filter by **type of material** (e.g., cotton, polyester, wool)
-- Filter by **minimum percentage of a selected material**
-- Works directly on Zara product listing pages
-- Lightweight and easy to use
-
----
+* **Reading tracking:** Keep track of books you want to read, are currently reading, and have finished.
+* **Ratings and reviews:** Rate books and share your thoughts with other readers.
+* **Reader profiles:** Build a profile showcasing your reading activity, favorite books, and reviews.
+* **Social feed:** Follow readers and discover their latest reading activity.
+* **Book discussions:** Share recommendations and discuss books with the community.
+* **Book discovery:** Explore books and find your next read.
+* **Privacy controls:** Choose what reading activity and profile information you share.
 
 ## Motivation
 
-Zara’s website does not provide advanced filtering options such as:
-- Filtering by exact discount percentage
-- Filtering by material composition thresholds (e.g., “at least 80% cotton”)
+Reading can be a personal experience, but it can also bring people together.
 
-This extension solves that problem by giving users more control over how they browse products, helping them:
-- Find better deals faster
-- Shop based on fabric preferences
-- Make more informed purchasing decisions
+BookCircle aims to make reading more social by giving readers a dedicated space to document their reading journeys, discover new books, exchange recommendations, and connect through their shared interests.
 
----
+## Planned Technology
 
-## How It Works
+The initial development plan includes:
 
-The extension:
-1. Reads product information displayed on Zara.com
-2. Extracts pricing and material composition data
-3. Applies user-defined filters in real time
-4. Hides products that do not meet the selected criteria
+* Next.js and React
+* TypeScript
+* Tailwind CSS
+* Supabase for authentication and database functionality
+* Open Library API for book information
 
-All filtering happens directly in the browser.
-
----
-
-## Installation (Developer Mode)
-
-1. Clone or download this repository
-2. Open Google Chrome and navigate to:
-chrome://extensions/
-
-
-3. Enable **Developer mode** (top right)
-4. Click **Load unpacked**
-5. Select the project folder
-
-The extension will now appear in your Chrome toolbar.
-
----
-
-## Usage
-
-1. Visit Zara.com
-2. Open a product listing page
-3. Use the extension’s filter controls to:
-- Set a minimum discount percentage
-- Choose a material type
-- Specify the minimum percentage of that material
-4. Products update automatically based on your filters
-
----
+The technology stack may evolve as development progresses.
 
 ## Project Status
 
-This project is under active development. Features and improvements may be added over time.
+BookCircle is currently in its initial development stage. Features, documentation, and architecture will evolve as the project grows.
 
----
+## Contributing
 
-## Disclaimer
-
-This project is not affiliated with or endorsed by Zara.  
-Zara is a trademark of its respective owner.
-
----
+Contributions, suggestions, bug reports, and feature ideas are welcome. Contribution guidelines will be added as the project develops.
 
 ## License
 
-This project is licensed under the MIT License.
-# BookCircle
+This project is intended to be open source. A license will be specified in the repository.
