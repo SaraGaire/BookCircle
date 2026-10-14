@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentUser = {
@@ -13,6 +14,11 @@ export type CurrentUser = {
  * can be trusted. Reads cookies, so callers must render inside <Suspense>.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
+  // Checking the token compares its expiry time with the current time. When
+  // Next.js prepares pages ahead of a click (partial prefetching), it can read
+  // cookies but not the clock, so this tells it to wait for the real request.
+  await connection();
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data) return null;
