@@ -29,6 +29,9 @@ export type Profile = {
   createdAt: string;
 };
 
+const PROFILE_COLUMNS =
+  "id, username, display_name, bio, avatar_url, is_private, created_at";
+
 /** Fetches a profile by username. Returns `null` if there's no such reader. */
 export async function getProfileByUsername(
   input: string,
@@ -36,12 +39,23 @@ export async function getProfileByUsername(
   const username = normalizeUsername(input);
   // Skip the database for URLs that can't be a username, like /u/a.b
   if (validateUsername(username)) return null;
+  return findProfile("username", username);
+}
 
+/** Fetches a profile by account id, e.g. the signed-in reader's own. */
+export async function getProfileById(id: string): Promise<Profile | null> {
+  return findProfile("id", id);
+}
+
+async function findProfile(
+  column: "id" | "username",
+  value: string,
+): Promise<Profile | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, username, display_name, bio, avatar_url, is_private, created_at")
-    .eq("username", username)
+    .select(PROFILE_COLUMNS)
+    .eq(column, value)
     .maybeSingle();
   if (error) throw new Error(`Couldn't load profile: ${error.message}`);
   if (!data) return null;

@@ -1,9 +1,12 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock } from "lucide-react";
+import { Lock, Pencil } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { badgeVariants } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth";
 import { getProfileByUsername } from "@/lib/profiles";
 
 export async function generateMetadata({
@@ -30,9 +33,12 @@ async function ProfileDetails({
 }: Pick<PageProps<"/u/[username]">, "params">) {
   const { username } = await params;
 
-  let profile;
+  let profile, viewer;
   try {
-    profile = await getProfileByUsername(username);
+    [profile, viewer] = await Promise.all([
+      getProfileByUsername(username),
+      getCurrentUser(),
+    ]);
   } catch {
     return (
       <p role="alert" className="text-sm text-destructive">
@@ -41,6 +47,7 @@ async function ProfileDetails({
     );
   }
   if (!profile) notFound();
+  const isOwnProfile = viewer?.id === profile.id;
 
   const name = profile.displayName ?? profile.username;
   const joined = new Date(profile.createdAt).toLocaleDateString("en", {
@@ -74,6 +81,15 @@ async function ProfileDetails({
             )}
           </p>
         </div>
+        {isOwnProfile && (
+          <Link
+            href="/settings/profile"
+            className={buttonVariants({ variant: "outline", className: "ml-auto" })}
+          >
+            <Pencil aria-hidden="true" />
+            Edit profile
+          </Link>
+        )}
       </header>
 
       {profile.bio && (
