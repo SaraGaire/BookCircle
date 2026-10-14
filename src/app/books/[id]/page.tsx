@@ -4,8 +4,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { BookCover } from "@/components/book-cover";
+import { ShelfButton } from "@/components/shelf-button";
 import { badgeVariants } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { getCurrentUser } from "@/lib/auth";
 import { getBook } from "@/lib/open-library";
+import { getShelfStatus } from "@/lib/shelves";
 
 export async function generateMetadata({
   params,
@@ -76,6 +80,14 @@ async function BookDetails({ params }: Pick<PageProps<"/books/[id]">, "params">)
           </p>
         )}
 
+        <div className="mt-6">
+          {/* Who's signed in is only known per request, so the button streams
+              in after the rest of the book details. */}
+          <Suspense fallback={<div className="h-9 w-36 animate-pulse rounded-lg bg-muted" />}>
+            <ShelfControl bookId={book.id} />
+          </Suspense>
+        </div>
+
         <div className="mt-6 max-w-prose whitespace-pre-line leading-relaxed">
           {book.description ?? (
             <span className="text-muted-foreground">
@@ -104,6 +116,23 @@ async function BookDetails({ params }: Pick<PageProps<"/books/[id]">, "params">)
       </div>
     </article>
   );
+}
+
+async function ShelfControl({ bookId }: { bookId: string }) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return (
+      <Link
+        href={`/sign-in?next=${encodeURIComponent(`/books/${bookId}`)}`}
+        className={buttonVariants({ variant: "outline", size: "lg" })}
+      >
+        Sign in to add to your shelves
+      </Link>
+    );
+  }
+
+  const status = await getShelfStatus(user.id, bookId).catch(() => null);
+  return <ShelfButton bookId={bookId} status={status} />;
 }
 
 function BookSkeleton() {
