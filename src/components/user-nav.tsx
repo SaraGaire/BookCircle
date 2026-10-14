@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { signOut } from "@/app/auth/actions";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { UserMenu } from "@/components/user-menu";
 import { getCurrentUser } from "@/lib/auth";
+import { getProfileById } from "@/lib/profiles";
 
-/** Right side of the header: "Sign in", or the signed-in user's email. */
+/** Right side of the header: "Sign in", or the signed-in reader's menu. */
 export async function UserNav() {
   const user = await getCurrentUser();
 
@@ -15,24 +16,15 @@ export async function UserNav() {
     );
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        className="hidden max-w-48 truncate text-sm text-muted-foreground md:inline"
-        title={user.email}
-      >
-        {user.email}
-      </span>
-      <form action={signOut}>
-        <Button type="submit" size="sm" variant="outline">
-          Sign out
-        </Button>
-      </form>
-    </div>
-  );
+  // If the profile can't be loaded, fall back to the email rather than
+  // breaking the whole header.
+  const profile = await getProfileById(user.id).catch(() => null);
+  const name = profile?.displayName ?? profile?.username ?? user.email;
+
+  return <UserMenu name={name} username={profile?.username ?? null} />;
 }
 
-/** Same size as the button, shown while we check who's signed in. */
+/** Same size as the menu button, shown while we check who's signed in. */
 export function UserNavSkeleton() {
-  return <div className="h-7 w-16 animate-pulse rounded-lg bg-muted" />;
+  return <div className="h-8 w-10 animate-pulse rounded-lg bg-muted md:w-32" />;
 }
