@@ -19,6 +19,45 @@ export function validateUsername(username: string): string | null {
   return null;
 }
 
+export type Profile = {
+  id: string;
+  username: string;
+  displayName: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  isPrivate: boolean;
+  createdAt: string;
+};
+
+/** Fetches a profile by username. Returns `null` if there's no such reader. */
+export async function getProfileByUsername(
+  input: string,
+): Promise<Profile | null> {
+  const username = normalizeUsername(input);
+  // Skip the database for URLs that can't be a username, like /u/a.b
+  if (validateUsername(username)) return null;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, bio, avatar_url, is_private, created_at")
+    .eq("username", username)
+    .maybeSingle();
+  if (error) throw new Error(`Couldn't load profile: ${error.message}`);
+  if (!data) return null;
+
+  // The database uses snake_case names; the rest of our code uses camelCase.
+  return {
+    id: data.id,
+    username: data.username,
+    displayName: data.display_name,
+    bio: data.bio,
+    avatarUrl: data.avatar_url,
+    isPrivate: data.is_private,
+    createdAt: data.created_at,
+  };
+}
+
 /** True if another reader already has this username. */
 export async function isUsernameTaken(username: string) {
   const supabase = await createClient();
