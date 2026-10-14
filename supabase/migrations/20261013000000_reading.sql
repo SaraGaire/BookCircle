@@ -77,8 +77,10 @@ create table public.reading_goals (
 
 -- ---------------------------------------------------------------------------
 -- Keep user_books.updated_at current.
+-- `create or replace` because the profiles migration defines this function
+-- too; this way the two migrations can run in either order.
 -- ---------------------------------------------------------------------------
-create function public.set_updated_at()
+create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
