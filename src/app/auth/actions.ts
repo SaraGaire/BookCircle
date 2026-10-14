@@ -3,12 +3,18 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { safeRedirectPath } from "@/lib/auth";
+import {
+  isUsernameTaken,
+  normalizeUsername,
+  validateUsername,
+} from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
   error?: string;
   message?: string;
   email?: string;
+  username?: string;
 };
 
 function readCredentials(formData: FormData) {
@@ -42,11 +48,18 @@ export async function signUp(
   formData: FormData,
 ): Promise<AuthFormState> {
   const { email, password } = readCredentials(formData);
-  if (!email || !password) {
-    return { error: "Enter an email and a password.", email };
+  const username = normalizeUsername(String(formData.get("username") ?? ""));
+  if (!email || !password || !username) {
+    return { error: "Enter a username, an email, and a password.", email, username };
   }
+
+  const usernameError = validateUsername(username);
+  if (usernameError) return { error: usernameError, email, username };
   if (password.length < 8) {
-    return { error: "Use a password with at least 8 characters.", email };
+    return { error: "Use a password with at least 8 characters.", email, username };
+  }
+  if (await isUsernameTaken(username)) {
+    return { error: `The username “${username}” is taken. Try another.`, email, username };
   }
 
   // The confirmation email links back to our site, so we need its address.
@@ -56,9 +69,14 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${origin}/auth/callback` },
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+      // Saved on the account; the database trigger copies it into the new
+      // profile (see supabase/migrations/20261014000000_profiles.sql).
+      data: { username },
+    },
   });
-  if (error) return { error: error.message, email };
+  if (error) return { error: error.message, email, username };
 
   // If email confirmation is turned off in Supabase, the user is signed in now.
   if (data.session) redirect("/shelves");

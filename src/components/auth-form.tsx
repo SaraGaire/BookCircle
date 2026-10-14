@@ -37,6 +37,31 @@ export function AuthForm({ mode, next, notice }: AuthFormProps) {
     <form action={formAction} className="space-y-4">
       {next && <input type="hidden" name="next" value={next} />}
 
+      {!isSignIn && (
+        <div className="space-y-1.5">
+          <label htmlFor="username" className="text-sm font-medium">
+            Username
+          </label>
+          <Input
+            id="username"
+            name="username"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            minLength={3}
+            maxLength={30}
+            pattern="[A-Za-z0-9_]+"
+            aria-describedby="username-hint"
+            defaultValue={state.username}
+            required
+          />
+          <p id="username-hint" className="text-xs text-muted-foreground">
+            Letters, numbers, and underscores. Your profile will be at
+            /u/username.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <label htmlFor="email" className="text-sm font-medium">
           Email
