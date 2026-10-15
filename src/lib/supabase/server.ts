@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 /**
@@ -6,6 +7,11 @@ import { createServerClient } from "@supabase/ssr";
  * Handlers. Create a new one per request; never share it between requests.
  */
 export async function createClient() {
+  // Supabase checks whether the session token has expired, which compares it
+  // with the current time. When Next.js prepares pages ahead of a click
+  // (partial prefetching), it can read cookies but not the clock, so this
+  // tells it to wait for the real request before using the client.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient(

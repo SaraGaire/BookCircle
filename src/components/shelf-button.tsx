@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SHELF_LABELS, SHELF_STATUSES, type ShelfStatus } from "@/lib/shelves";
+import { SHELF_LABELS, SHELF_STATUSES, type ShelfStatus } from "@/lib/shelf-status";
 
 type ShelfButtonProps = {
   bookId: string;

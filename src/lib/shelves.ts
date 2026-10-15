@@ -1,18 +1,5 @@
+import type { ShelfStatus } from "@/lib/shelf-status";
 import { createClient } from "@/lib/supabase/server";
-
-// Must match the shelf_status enum in the reading migration.
-export const SHELF_STATUSES = ["want_to_read", "reading", "read"] as const;
-export type ShelfStatus = (typeof SHELF_STATUSES)[number];
-
-export const SHELF_LABELS: Record<ShelfStatus, string> = {
-  want_to_read: "Want to Read",
-  reading: "Reading",
-  read: "Read",
-};
-
-export function isShelfStatus(value: unknown): value is ShelfStatus {
-  return SHELF_STATUSES.includes(value as ShelfStatus);
-}
 
 /** Which shelf a reader has a book on, or `null` if it's not on any. */
 export async function getShelfStatus(
@@ -28,4 +15,32 @@ export async function getShelfStatus(
     .maybeSingle();
   if (error) throw new Error(`Couldn't load shelf: ${error.message}`);
   return data?.status ?? null;
+}
+
+export type ShelfBook = {
+  /** Open Library work ID, e.g. "OL82563W". */
+  id: string;
+  title: string;
+  authors: string[];
+  coverId: number | null;
+  status: ShelfStatus;
+};
+
+/** Every book on a reader's shelves, most recently changed first. */
+export async function getShelfBooks(userId: string): Promise<ShelfBook[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("user_books")
+    .select("book_id, title, authors, cover_id, status")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+  if (error) throw new Error(`Couldn't load shelves: ${error.message}`);
+
+  return data.map((row) => ({
+    id: row.book_id,
+    title: row.title,
+    authors: row.authors,
+    coverId: row.cover_id,
+    status: row.status,
+  }));
 }

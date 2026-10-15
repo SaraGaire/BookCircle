@@ -34,10 +34,10 @@ async function SearchContent({
 
   return (
     <>
-      <SearchForm key={query} defaultValue={query} />
+      <SearchForm key={`form:${query}`} defaultValue={query} />
       {query ? (
         // `key` makes the loading state show again for each new search.
-        <Suspense key={query} fallback={<ResultsSkeleton />}>
+        <Suspense key={`results:${query}`} fallback={<ResultsSkeleton />}>
           <SearchResults query={query} />
         </Suspense>
       ) : (
