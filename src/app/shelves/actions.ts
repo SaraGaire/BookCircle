@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { getBook } from "@/lib/open-library";
-import { isShelfStatus, type ShelfStatus } from "@/lib/shelves";
+import { isShelfStatus, type ShelfStatus } from "@/lib/shelf-status";
 import { createClient } from "@/lib/supabase/server";
 
 export type ShelfActionResult = { error?: string };
@@ -30,7 +30,11 @@ export async function setShelfStatus(
     p_cover_id: book.coverId,
     p_status: status,
   });
-  if (error) return { error: "We couldn’t update your shelf. Please try again." };
+  if (error) {
+    // Readers see a friendly message; the details go to the server log.
+    console.error("set_shelf_status failed:", error);
+    return { error: "We couldn’t update your shelf. Please try again." };
+  }
 
   refresh();
   return {};
@@ -49,7 +53,10 @@ export async function removeFromShelves(
     .delete()
     .eq("user_id", user.id)
     .eq("book_id", bookId);
-  if (error) return { error: "We couldn’t remove this book. Please try again." };
+  if (error) {
+    console.error("removeFromShelves failed:", error);
+    return { error: "We couldn’t remove this book. Please try again." };
+  }
 
   refresh();
   return {};
