@@ -1,20 +1,38 @@
 import type { ShelfStatus } from "@/lib/shelf-status";
 import { createClient } from "@/lib/supabase/server";
 
-/** Which shelf a reader has a book on, or `null` if it's not on any. */
-export async function getShelfStatus(
+export type UserBook = {
+  status: ShelfStatus;
+  /** 1–10, in half stars; null if not rated. */
+  rating: number | null;
+  review: string | null;
+  reviewHasSpoilers: boolean;
+};
+
+/**
+ * A reader's shelf, rating, and review for one book, or `null` if the book
+ * isn't on any of their shelves.
+ */
+export async function getUserBook(
   userId: string,
   bookId: string,
-): Promise<ShelfStatus | null> {
+): Promise<UserBook | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("user_books")
-    .select("status")
+    .select("status, rating, review, review_has_spoilers")
     .eq("user_id", userId)
     .eq("book_id", bookId)
     .maybeSingle();
   if (error) throw new Error(`Couldn't load shelf: ${error.message}`);
-  return data?.status ?? null;
+  if (!data) return null;
+
+  return {
+    status: data.status,
+    rating: data.rating,
+    review: data.review,
+    reviewHasSpoilers: data.review_has_spoilers,
+  };
 }
 
 export type ShelfBook = {

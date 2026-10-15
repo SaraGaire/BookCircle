@@ -4,12 +4,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { BookCover } from "@/components/book-cover";
+import { ReviewSection } from "@/components/review-section";
 import { ShelfButton } from "@/components/shelf-button";
+import { StarRating } from "@/components/star-rating";
 import { badgeVariants } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
 import { getBook } from "@/lib/open-library";
-import { getShelfStatus } from "@/lib/shelves";
+import { getUserBook } from "@/lib/shelves";
 
 export async function generateMetadata({
   params,
@@ -81,10 +83,10 @@ async function BookDetails({ params }: Pick<PageProps<"/books/[id]">, "params">)
         )}
 
         <div className="mt-6">
-          {/* Who's signed in is only known per request, so the button streams
-              in after the rest of the book details. */}
-          <Suspense fallback={<div className="h-9 w-36 animate-pulse rounded-lg bg-muted" />}>
-            <ShelfControl bookId={book.id} />
+          {/* Who's signed in is only known per request, so the shelf, rating,
+              and review controls stream in after the rest of the details. */}
+          <Suspense fallback={<ReaderControlsSkeleton />}>
+            <ReaderControls bookId={book.id} />
           </Suspense>
         </div>
 
@@ -118,7 +120,8 @@ async function BookDetails({ params }: Pick<PageProps<"/books/[id]">, "params">)
   );
 }
 
-async function ShelfControl({ bookId }: { bookId: string }) {
+/** The signed-in reader's shelf, rating, and review for this book. */
+async function ReaderControls({ bookId }: { bookId: string }) {
   const user = await getCurrentUser();
   if (!user) {
     return (
@@ -126,13 +129,33 @@ async function ShelfControl({ bookId }: { bookId: string }) {
         href={`/sign-in?next=${encodeURIComponent(`/books/${bookId}`)}`}
         className={buttonVariants({ variant: "outline", size: "lg" })}
       >
-        Sign in to add to your shelves
+        Sign in to shelve, rate, and review
       </Link>
     );
   }
 
-  const status = await getShelfStatus(user.id, bookId).catch(() => null);
-  return <ShelfButton bookId={bookId} status={status} />;
+  const userBook = await getUserBook(user.id, bookId).catch(() => null);
+  return (
+    <div className="space-y-5">
+      <ShelfButton bookId={bookId} status={userBook?.status ?? null} />
+      <StarRating bookId={bookId} rating={userBook?.rating ?? null} />
+      <ReviewSection
+        bookId={bookId}
+        review={userBook?.review ?? null}
+        hasSpoilers={userBook?.reviewHasSpoilers ?? false}
+      />
+    </div>
+  );
+}
+
+function ReaderControlsSkeleton() {
+  return (
+    <div className="space-y-5" aria-hidden="true">
+      <div className="h-9 w-36 animate-pulse rounded-lg bg-muted" />
+      <div className="h-8 w-48 animate-pulse rounded bg-muted" />
+      <div className="h-8 w-36 animate-pulse rounded-lg bg-muted" />
+    </div>
+  );
 }
 
 function BookSkeleton() {
