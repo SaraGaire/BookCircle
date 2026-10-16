@@ -4,6 +4,7 @@ import { useOptimistic, useState, useTransition } from "react";
 import { Star } from "lucide-react";
 import { setRating } from "@/app/shelves/actions";
 import { Button } from "@/components/ui/button";
+import { localToday } from "@/lib/dates";
 import { describeRating } from "@/lib/rating";
 
 type StarRatingProps = {
@@ -30,7 +31,7 @@ export function StarRating({ bookId, rating }: StarRatingProps) {
     setError(null);
     startTransition(async () => {
       setOptimisticRating(value);
-      const result = await setRating(bookId, value);
+      const result = await setRating(bookId, value, localToday());
       if (result.error) setError(result.error);
     });
   }

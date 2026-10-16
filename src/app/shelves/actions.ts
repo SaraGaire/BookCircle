@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
+import { readerToday } from "@/lib/dates";
 import { getBook } from "@/lib/open-library";
 import { isRating, MAX_REVIEW_LENGTH } from "@/lib/rating";
 import { isShelfStatus, type ShelfStatus } from "@/lib/shelf-status";
@@ -9,16 +10,21 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ShelfActionResult = { error?: string };
 
+/**
+ * `today` is the reader's own date from the browser ("2026-10-16"), used for
+ * the diary. See readerToday in lib/dates.ts.
+ */
 export async function setShelfStatus(
   bookId: string,
   status: ShelfStatus,
+  today?: string,
 ): Promise<ShelfActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Sign in to use shelves." };
   // Anyone can call a Server Action with any values, so check them here.
   if (!isShelfStatus(status)) return { error: "That isn't a shelf." };
 
-  const error = await putOnShelf(bookId, status);
+  const error = await putOnShelf(bookId, status, readerToday(today));
   if (error) return { error };
 
   refresh();
@@ -51,6 +57,7 @@ export async function removeFromShelves(
 export async function setRating(
   bookId: string,
   rating: number | null,
+  today?: string,
 ): Promise<ShelfActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Sign in to rate books." };
@@ -60,7 +67,7 @@ export async function setRating(
 
   // Rating a book you haven't shelved counts as having read it.
   if (rating !== null) {
-    const error = await shelveIfNeeded(user.id, bookId);
+    const error = await shelveIfNeeded(user.id, bookId, readerToday(today));
     if (error) return { error };
   }
 
@@ -109,7 +116,11 @@ export async function saveReview(
   }
 
   // Reviewing a book you haven't shelved counts as having read it.
-  const shelveError = await shelveIfNeeded(user.id, bookId);
+  const shelveError = await shelveIfNeeded(
+    user.id,
+    bookId,
+    readerToday(formData.get("today")),
+  );
   if (shelveError) return { error: shelveError };
 
   const supabase = await createClient();
@@ -154,6 +165,7 @@ export async function deleteReview(bookId: string): Promise<ShelfActionResult> {
 async function putOnShelf(
   bookId: string,
   status: ShelfStatus,
+  today: string | undefined,
 ): Promise<string | null> {
   // Look the book up ourselves rather than trusting a title sent from the
   // browser. getBook is cached, so this is usually instant.
@@ -167,6 +179,8 @@ async function putOnShelf(
     p_authors: book.authors,
     p_cover_id: book.coverId,
     p_status: status,
+    // Left out when undefined, so the database uses its own date instead.
+    p_today: today,
   });
   if (error) {
     // Readers see a friendly message; the details go to the server log.
@@ -184,6 +198,7 @@ async function putOnShelf(
 async function shelveIfNeeded(
   userId: string,
   bookId: string,
+  today: string | undefined,
 ): Promise<string | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -197,5 +212,5 @@ async function shelveIfNeeded(
     return "We couldn’t update your shelf. Please try again.";
   }
   if (data) return null;
-  return putOnShelf(bookId, "read");
+  return putOnShelf(bookId, "read", today);
 }

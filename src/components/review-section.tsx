@@ -9,6 +9,7 @@ import {
 } from "@/app/shelves/actions";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { localToday } from "@/lib/dates";
 import { MAX_REVIEW_LENGTH } from "@/lib/rating";
 
 type ReviewSectionProps = {
@@ -48,9 +49,16 @@ export function ReviewSection({ bookId, review, hasSpoilers }: ReviewSectionProp
     });
   }
 
+  // Adds the reader's date as the form is sent, in case saving the review
+  // also puts the book on their Read shelf (and so in their diary).
+  function submit(formData: FormData) {
+    formData.set("today", localToday());
+    formAction(formData);
+  }
+
   if (editing) {
     return (
-      <form action={formAction} className="space-y-3">
+      <form action={submit} className="space-y-3">
         <label htmlFor="review" className="text-sm font-medium">
           Your review
         </label>
