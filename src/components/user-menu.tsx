@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { ChevronDown, LogOut, Pencil, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, NotebookPen, Pencil, UserRound } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
@@ -47,6 +47,11 @@ export function UserMenu({ name, username }: UserMenuProps) {
             <p className="truncate text-xs text-muted-foreground">@{username}</p>
           )}
         </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuLinkItem render={<Link href="/diary" />}>
+          <NotebookPen aria-hidden="true" />
+          Reading diary
+        </DropdownMenuLinkItem>
         <DropdownMenuSeparator />
         {username && (
           <>

@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { localToday } from "@/lib/dates";
 import { SHELF_LABELS, SHELF_STATUSES, type ShelfStatus } from "@/lib/shelf-status";
 
 type ShelfButtonProps = {
@@ -54,7 +55,7 @@ export function ShelfButton({ bookId, status }: ShelfButtonProps) {
           {SHELF_STATUSES.map((shelf) => (
             <DropdownMenuItem
               key={shelf}
-              onClick={() => run(() => setShelfStatus(bookId, shelf))}
+              onClick={() => run(() => setShelfStatus(bookId, shelf, localToday()))}
             >
               {/* An empty space keeps the labels lined up. */}
               {shelf === status ? <Check aria-hidden="true" /> : <span className="size-4" />}
